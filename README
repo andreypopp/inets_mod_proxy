@@ -1,0 +1,13 @@
+mod_proxy -- inets httpd module that acts as proxy
+==================================================
+
+This module acts as proxy. It is not package as OTP application, so just drop
+it in your BEAM load path and use with the following example inets httpd
+configuration:
+
+    [
+        ...
+        {mod_proxy_target, {https, "server.com", 443},
+        {modules, [..., mod_proxy, ...]}
+        ...
+    ].
