@@ -1,9 +1,9 @@
 mod_proxy -- inets httpd module that acts as proxy
 ==================================================
 
-This module acts as proxy. It is not package as OTP application, so just drop
-it in your BEAM load path and use with the following example inets httpd
-configuration:
+This module acts as reverse proxy. It is not package as OTP application, so
+just drop it in your BEAM load path and use with the following example inets
+httpd configuration:
 
     [
         ...
