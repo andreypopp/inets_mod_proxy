@@ -38,10 +38,7 @@ proxy_request({Proto, Host, Port}, Info) ->
     ProxyUrl = compose_url(Proto, Host, Port, Info#mod.request_uri),
     Method = which_method(Info),
     HTTPOptions = [{autoredirect, false}],
-    Headers = case proplists:is_defined("host", Info#mod.parsed_header) of
-        true -> Info#mod.parsed_header;
-        false -> [{"host", Host} | Info#mod.parsed_header]
-    end,
+    Headers = derive_headers(Info#mod.parsed_header, Host),
     if
         (Method =:= post) or (Method =:= put) ->
             case which_content_type(Info) of
@@ -53,6 +50,15 @@ proxy_request({Proto, Host, Port}, Info) ->
         true ->
             http:request(Method, {ProxyUrl, Headers}, HTTPOptions, [])
     end.
+
+
+%% @doc Derive headers for proxy request.
+%% @spec derive_headers(IncomingHeaders, Host) -> ProxyHeaders
+%%  IncomingHeaders = headers()
+%%  Host = string()
+%%  ProxyHeaders = headers()
+derive_headers(IncomingHeaders, Host) ->
+    [{"host", Host} | proplists:delete("host", IncomingHeaders)].
 
 
 %% @doc Extract HTTP method value as atom from module info.
