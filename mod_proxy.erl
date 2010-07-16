@@ -5,18 +5,20 @@
 %%% <code>{https, "google.com", 443}</code>. Note, that trailing slash is not
 %%% allowed here.
 
--module(entrysmr_mod_proxy).
+-module(mod_proxy).
 -export([do/1]).
 
 -include_lib("inets/src/httpd.hrl").
 
+-define(DEFAULT_TIMEOUT, 5000).
 
 %% @doc Inets httpd module callback.
 do(Info) ->
     ProxyTo = which_proxy_target(Info),
+    Timeout = which_timeout(Info),
     error_logger:info_msg("proxying request ~p to ~p",
         [Info#mod.method ++ " " ++ Info#mod.request_uri, ProxyTo]),
-    case proxy_request(ProxyTo, Info) of
+    case proxy_request(ProxyTo, Info, Timeout) of
         {ok, {{_, StatusCode, _}, RespHeaders, Body}} ->
             Headers = [{code, StatusCode}] ++ RespHeaders,
             {break, [{response, {response,  Headers, Body}}]};
@@ -34,10 +36,10 @@ do(Info) ->
 %%  Host = string()
 %%  Port = integer()
 %%  Reason = term()
-proxy_request({Proto, Host, Port}, Info) ->
+proxy_request({Proto, Host, Port}, Info, Timeout) ->
     ProxyUrl = compose_url(Proto, Host, Port, Info#mod.request_uri),
     Method = which_method(Info),
-    HTTPOptions = [{autoredirect, false}],
+    HTTPOptions = [{autoredirect, false}, {timeout, Timeout}],
     Headers = derive_headers(Info#mod.parsed_header, Host),
     if
         (Method =:= post) or (Method =:= put) ->
@@ -91,6 +93,11 @@ which_proxy_target(Info) ->
             end;
         {Proto, Host, Port} -> {Proto, Host, Port}
     end.
+
+
+%% @doc Read timeout for proxy requests from configuration.
+which_timeout(Info) ->
+    httpd_util:lookup(Info#mod.config_db, mod_proxy_timeout, ?DEFAULT_TIMEOUT).
 
 
 %% @doc Extract Content-Type header from module info.
