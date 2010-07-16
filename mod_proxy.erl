@@ -58,7 +58,10 @@ proxy_request({Proto, Host, Port}, Info) ->
 %%  Host = string()
 %%  ProxyHeaders = headers()
 derive_headers(IncomingHeaders, Host) ->
-    [{"host", Host} | proplists:delete("host", IncomingHeaders)].
+    case proplists:is_defined("host", IncomingHeaders) of
+        true -> IncomingHeaders;
+        false -> [{"host", Host} | proplists:delete("host", IncomingHeaders)]
+    end.
 
 
 %% @doc Extract HTTP method value as atom from module info.
