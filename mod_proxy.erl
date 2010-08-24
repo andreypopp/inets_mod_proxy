@@ -8,7 +8,7 @@
 -module(mod_proxy).
 -export([do/1]).
 
--include_lib("inets/src/httpd.hrl").
+-include_lib("inets/src/http_server/httpd.hrl").
 
 -define(DEFAULT_TIMEOUT, 5000).
 
@@ -47,10 +47,10 @@ proxy_request({Proto, Host, Port}, Info, Timeout) ->
                 none -> {error, no_content_type};
                 ContentType -> 
                     Rq = {ProxyUrl, Headers, ContentType, Info#mod.entity_body},
-                    http:request(Method, Rq, HTTPOptions, [])
+                    httpc:request(Method, Rq, HTTPOptions, [])
             end;
         true ->
-            http:request(Method, {ProxyUrl, Headers}, HTTPOptions, [])
+            httpc:request(Method, {ProxyUrl, Headers}, HTTPOptions, [])
     end.
 
 
